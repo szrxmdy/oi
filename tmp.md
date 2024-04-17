@@ -26,6 +26,12 @@ eg : [Stamp Rally](https://vjudge.net/problem/AtCoder-agc002_d)
 将时间复杂度降至$n$
 eg : [团](https://www.luogu.com.cn/problem/P7100)
 
+### 决策
+有一类题目在最短路的同时会有一些限制导致边权发生变化,
+这个时候可以给一些点建立虚点,
+使得走过这些虚点是必然满足限制条件
+eg : [robot](https://www.luogu.com.cn/problem/P7407)
+
 ## bfs
 在类似合并子树时是dfs(便利下一棵子树时已经完整便利了上一棵子树)
 与深度(距离)有关时bfs
@@ -85,7 +91,7 @@ eg:[Be Geeks!](https://www.luogu.com.cn/problem/P9607)
 ## 坐标系
 在坐标系中,有一些经典结论,
 若b在a,c之间,那么有
-$ dis(a \rightarrow c) = dis(a \rightarrow b ) + dis(b \rightarrow c) $
+$dis(a \rightarrow c) = dis(a \rightarrow b ) + dis(b \rightarrow c)$
 以及$ dis(a \rightarrow c) > dis(a \rightarrow b )和 dis(b \rightarrow c) $
 这启示我们一些题目只要保留相邻的坐标,
 即可在后续如dp/最短路/生成树等操作获得全部需要的信息
