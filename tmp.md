@@ -34,7 +34,8 @@ eg : [robot](https://www.luogu.com.cn/problem/P7407)
 
 ## bfs
 在类似合并子树时是dfs(便利下一棵子树时已经完整便利了上一棵子树)
-与深度(距离)有关时bfs
+与深度(距离)有关时bfs,
+bfs的遍历过程带有深度约束 eg : [[YsOI2023] 广度优先遍历](https://www.luogu.com.cn/problem/P9534)
 ### 0/1bfs
 更改了之前错误的认知
 0/1bfs需要用双端队列来维护,将边权为0的放到前面,边权为1的放到后面
