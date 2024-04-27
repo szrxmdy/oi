@@ -97,3 +97,10 @@ $dis(a \rightarrow c) = dis(a \rightarrow b ) + dis(b \rightarrow c)$
 这启示我们一些题目只要保留相邻的坐标,
 即可在后续如dp/最短路/生成树等操作获得全部需要的信息
 eg:[SVEMIR](https://www.luogu.com.cn/problem/P8074)
+
+## 约分
+对于需要输出分数时需要约分,这时先除再乘可以多算一点
+$$
+{p1\over q1 } + {p2 \over q2} = {p1*q2 \over q1 * q2} + {p2 * q1 \over q1 * q2}
+$$
+这个时候可以先让上下都除以$gcd(q1,q2)$再把两者加起来,再约分
