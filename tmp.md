@@ -121,3 +121,57 @@ for (k = 1; k <= n; k++) {
 不难发现第一维k可以滚动数组滚掉
 因为Floyd的状态设计来自路径,
 凡是与 **路径** 有关的都要想到Floyd
+
+## 树状数组后缀和
+后缀 = 总和 - 前缀
+## dp方程设计
+在设计dp方程时,先确定最后的目标,
+然后根据目标来确定需求,再根据需求来确定状态
+
+状态考虑因素:
+1.每次转移改变的状态较少的. eg: 最长上升子序列
+2.递推时尽量使用如 1.$f[i][j] = .... $
+而非如 2.$f[i + x][j + y] = ...f[i][j]$
+因为许多优化都要 1 才能看出来
+eg : [基站选址](https://www.luogu.com.cn/problem/P2605)
+3.找出的限制尽量有满足了这个限制不会满足其他限制,即有无后效性
+## 线段树
+### 写法
+线段树开4倍空间是因为最坏情况下将叶子节点补全到2的幂次个
+最后在加上非叶子节点为4倍
+
+注意: **线段树的叶子节点是不能进行down和up的**,
+否则会导致RE,并且叶子节点值更新出错,
+因此在 add 的最后一步不能加 la 然后 down,
+要直接更新 val 和 la
+因此当到了查询区间时就不能down了,
+down也要修改为更新左右儿子的值
+```cpp
+void down(int x,int s,int t) {
+    tr[L].val += tr[x].la * (M - s + 1);
+    tr[R].val += tr[x].la * (t - M);
+    tr[L].la += tr[x].la; tr[R].la += tr[x].la;
+    tr[x].la = 0;
+}
+void add(int x,int l,int r,int s,int t,int val) {
+    if(l <= s && t <= r) {
+        tr[x].la += val;
+        tr[x].val += val * (t - s + 1);
+        return ;
+    }
+    down(x,s,t);
+    if(l <= M) add(L,l,r,s,M,val);
+    if(M + 1 <= r) add(R,l,r,M + 1,t,val);
+    up(x);
+}
+int query(int x,int l,int r,int s,int t) {
+    if(l <= s && t <= r) {
+        return tr[x].val;
+    }
+    down(x,s,t);
+    int ans(0);
+    if(l <= M) ans += query(L,l,r,s,M);
+    if(M + 1 <= r) ans += query(R,l,r,M + 1,t);
+    return ans;
+}
+```

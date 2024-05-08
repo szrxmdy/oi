@@ -1,3 +1,4 @@
+
 ```cpp
 #include<bits/stdc++.h>
 #define fq(i,d,u) for(int i(d); i<=u; ++i)
