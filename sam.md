@@ -37,4 +37,43 @@ sam是一个DAG,边权是字母,
 1.$tr[q].len = tr[p].len + 1$,那么直接将np的link连向q即可
 2.$tr[q].len > tr[p].len + 1$,
 那么此时就要新建一个点nq,其len为$tr[p].len + 1$
-用nq来代替q的位置,
+此时nq与q的位置冲突了,但是没关系,
+发现nq是q的一个后缀,所以我们然nq来替代q的位置,然后将q的link连向nq,
+同时要记得把前面连向q的边改为连向nq以符合定义,
+注意q的孩子也要复制
+
+```cpp
+class Sam {
+public:
+    class nd{public: int ch[26],len,link;} tr[N << 1];
+    int cnt,last;
+
+    Sam() {last = cnt = 1;}
+    void add(char c) {
+        c -= 'a';
+        int np = ++cnt,p = last; tr[np].len = tr[last].len + 1;
+        last = np;
+        while(p && !tr[p].ch[c]) {tr[p].ch[c] = np; p = tr[p].link;}
+        if(!p) {tr[np].link = 1; return ;}
+
+        /*此时走到节点np,能够跑出长度为tr[p].len + 1 ~ tr[np].len的后缀*/
+        int q = tr[p].ch[c];
+        if(tr[q].len == tr[p].len + 1) {tr[np].link = q; return ;}
+
+        /*此时nq和q的位置冲突了,注意到nq是q的后缀,所以用nq代替q的位置*/
+        int nq = ++cnt;
+        tr[nq] = tr[q]; tr[nq].len = tr[p].len + 1;
+        tr[q].link = tr[np].link = nq;
+        while(p && tr[p].ch[c] == q) {tr[p].ch[c] = nq; p = tr[p].link;}
+    }
+    void build(const string &s) {
+        int n = s.size();
+        fq(i,0,n - 1) {add(s[i]);}
+    }
+    bool find(const string &s) {
+        int n = s.size() , p(1);
+        fq(i,0,n - 1) {p = tr[p].ch[s[i] - 'a']; if(!p) return 0;}
+        return 1;
+    }
+} sam;
+```
