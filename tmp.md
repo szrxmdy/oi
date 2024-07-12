@@ -245,3 +245,10 @@ eg : [Comfortably Numb](https://www.luogu.com.cn/problem/CF1777F)
 可以将每个序列的第一个数放入堆中,
 每次取出堆头,然后在放入取出数所在序列中的下一个数,
 重复k次即可
+
+## 连续异或
+$a_l\oplus a_{l + 1} \dots\oplus a_n = s_n \oplus s_{l - 1}$
+即前缀异或和
+**异或可以做前缀!!!**
+**异或可以做前缀!!!**
+**异或可以做前缀!!!**
