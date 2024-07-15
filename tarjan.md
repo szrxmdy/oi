@@ -44,3 +44,120 @@ void tarjan(int x)
     }
 }
 ```
+
+## 割点和割边
+**无向图中的dfs树不可能存在横叉边**
+边双缩完后时一颗树,点双是园方树
+
+**常以没有公共点/边的路径为标志**
+**不经过重复的点/边为标志**
+
+### 边双代码:
+显然,割边一定是树上的点且$low[v] > dfn[u]$
+```cpp
+namespace TJ {
+    vector<int> mp[N];
+    int dfn[N],ctd,col[N],ctc,low[N];
+    bool inst[N];
+    stack<int> st;
+
+    void dfs(int x,int fa) {
+        dfn[x] = low[x] = ++ctd;
+        st.push(x); inst[x] = 1;
+        for(auto &to : mp[x]) {
+            if(to == fa) continue;
+            if(inst[to]) {low[x] = min(low[x],dfn[to]);}
+            if(!dfn[to]) {
+                dfs(to,x);
+                low[x] = min(low[to],low[x]);
+            }
+        }
+        // cout << x << " " << dfn[x] << " " << low[x] << "#\n";
+        if(dfn[x] == low[x]) {
+            ++ctc;
+            while(st.top() != x) {
+                col[st.top()] = ctc;
+                inst[st.top()] = 0;
+                st.pop();
+            } col[st.top()] = ctc; 
+            inst[st.top()] = 0; st.pop();
+        }
+    }
+
+    void build() {
+        dfs(1,1);
+        fq(u,1,n)
+            for(int &v : mp[u]) 
+                if(low[v] > dfn[u]) {
+                    TR::tr[col[u]].push_back(col[v]);
+                    TR::tr[col[v]].push_back(col[u]);
+                }
+    }
+
+}
+```
+
+### 点双
+**一个点可以属于多个点双而一条边只能属于一个点双**
+因此点双相对边双的关键在于如何处理公用的点,
+我们用圆方树!!!!
+
+#### 圆方树
+定义 :
+**将原图上的点双看作一个方点,然后将原图上双连通分量中的点向这个方点连边**
+性质 :
+- 圆点代表了了原图上的点,一个方点连的所有原点代表了一个点双
+- 方点只连圆点,圆点只连方点
+- 度数 > 1的圆点代表了原图上的一个割点
+
+
+**注意开2倍空间**
+**注意点双是不经过父亲节点而不是不经过这条边,所以dfs中不用忽略父亲**
+
+代码:
+```cpp
+namespace TJ {
+    vector<int> mp[N];
+    int dfn[N],ctd,low[N];
+    stack<int> st; bool inst[N];
+
+    void dfs(int x) {
+        // cerr << x << " ";
+        dfn[x] = low[x] = ++ctd;
+        st.push(x); inst[x] = 1;
+        for(auto &to : mp[x]) {
+            if(!dfn[to]) {
+                dfs(to);
+                low[x] = min(low[x],low[to]);
+                if(low[to] == dfn[x]) {
+                    ++TR::cnt;
+                    while(1) {
+                        int p = st.top();
+                        st.pop(); inst[p] = 0;
+                        TR::tr[p].push_back(TR::cnt);
+                        TR::tr[TR::cnt].push_back(p);
+                        // cout << p << " " << TR::cnt << "#\n";
+                        if(p == to) {break;}
+                    }
+                    TR::tr[x].push_back(TR::cnt);
+                    TR::tr[TR::cnt].push_back(x);
+                    // cout << x << " " << TR::cnt << "#\n";
+                }
+            }
+            if(inst[to]) low[x] = min(low[x],dfn[to]);
+        }
+    }
+
+    void build() {
+
+        fq(i,1,m) {
+            int u,v; cin >> u >> v;
+            mp[u].push_back(v);
+            mp[v].push_back(u);
+        }
+        TR::cnt = n;
+        dfs(1);
+
+    }
+}
+```
