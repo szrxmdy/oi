@@ -23,3 +23,14 @@ $b$为要最大/小化的值($f[i]$),与j有关的是$y,x$,与$i$有关的是$k$
 3.由此即最大/小化截距,最终只需要维护凸包即可,
 4.如果k有单调性,用单调队列可以做到 O(n),否则二分最优决策点,为O(n*lgn)
 eg:[玩具装箱](https://www.luogu.com.cn/problem/P3195)
+
+## 背包类
+- 交换状态与答案 
+eg : [スタンプラリー 3 (Collecting Stamps 3)](https://www.xinyoudui.com/ac/contest/74700232B00040A022519C6/problem/8650)
+- dp退出
+类似统计方案这种加入顺序没有影响的题,且没有取max这种阴间转移的题,可以考虑将dp数组回溯到之前的状态
+eg : [消失之物](https://www.luogu.com.cn/problem/P4141)
+- 枚举顺序
+
+## 区间dp
+区间dp常常需要记录上次转移来的位置,从左或右
