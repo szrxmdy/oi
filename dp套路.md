@@ -34,3 +34,19 @@ eg : [消失之物](https://www.luogu.com.cn/problem/P4141)
 
 ## 区间dp
 区间dp常常需要记录上次转移来的位置,从左或右
+
+## 装压dp
+### 小技巧
+预处理集合大小
+```cpp
+fq(i,1,S) {
+    c[i] = c[i ^ (i & (-i))] + 1;
+    或
+    c[i] = c[i & (i - 1)] + 1
+}
+```
+自带函数
+```cpp
+__builtin_popcount(x); //返回int类型数的1的个数
+__builtin_popcountll(x); //返回long long类型
+```
