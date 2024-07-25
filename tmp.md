@@ -360,3 +360,25 @@ eg : [求和42](https://www.xinyoudui.com/ac/contest/74700232800040A022526E6/pro
 **转移有加法时候除以数不一定逆元(刚好是p的倍数),**
 所以要灵活的利用前后缀积避免除法
 eg : [Road Improvement](https://www.luogu.com.cn/problem/CF543D)
+
+## 贪心
+### 邻项交换
+很多贪心题只要排序一下就结束了,但是很难看出来,这里给出满足排序即可的条件
+
+考虑原序列的相邻两项,分别算出交换前后的价值$a,b$,
+**通过化简使不等式的一边只与一项有关,**
+**这样其就满足了传递性**
+证明其满足传递形后就可以排序做了
+
+eg : [国王游戏](https://www.luogu.com.cn/problem/P1080)
+
+#### 依赖类
+这类贪心往往是在树形结构上,选一个点必须要选前面一些点,
+这个时候可以先整体考虑,考虑全局最优,
+该点在选完其前一个点后一定会选他,然后把这两个点合并为一个点
+用邻项交换分析合为整体后的权值
+eg : [给树染色](https://cdn.acwing.com/problem/content/description/117/)
+
+### 反悔贪心
+贪心时每次都选择,知道不能选时去掉前面一个更劣的换成这个
+eg : [Work Scheduling G](https://www.luogu.com.cn/problem/P2949)
