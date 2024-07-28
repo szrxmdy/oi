@@ -17,8 +17,15 @@
 或者也可理解成,
 让本来各元素间没有等级区分的并查集变成了有等级区分
 
+**常常以找到权值 $\leq q$的连通块为标志**
+
 eg : [Stamp Rally](https://vjudge.net/problem/AtCoder-agc002_d)
 [Qpwoeirut and Vertices](https://www.luogu.com.cn/problem/CF1706E)
+
+性质 :
+- 边权集合都相同,边权互不相同时MST唯一
+- 最小生成树上的路径最大值最小,
+  因为如果有最大值更小的路径,肯定会形成环,然后把最大值更大的那个值替换掉
 
 ## 建图技巧
 ### 虚点
