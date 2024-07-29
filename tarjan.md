@@ -22,8 +22,7 @@ void tarjan(int x)
     low[x] = dfn[x], inv[x] = 1, st.push(x);
     for (int to : mp[x])
     {
-        /*如果已经搜过了且不在栈内，那么说明该条边连向一个已经缩点后的点,
-        即不在返租边的覆盖范围内,不能用来缩点*/
+        /*如果已经搜过了且不在栈内，那么说明该条边连向一个已经缩点后的点,即这是一个横叉边,不能用来缩点*/
         if (!dfn[to]) {tarjan(to); low[x] = min(low[to], low[x]);}
         else if (inv[to]) {low[x] = min(low[x], dfn[to]);}
     }
