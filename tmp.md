@@ -455,3 +455,60 @@ $w \leq dis_v - dis_u$ ,
 所以选一个点做spfa,用每个点的dis做势能即可
 为了防止图不联通,可以用超级源点向每个点连一条权为0的边
 这可以用spfa中直接入队实现
+
+## 线性基
+有数集$S$,求一个最小的数集,使这两个集合能异或出的数集相同
+考虑一个个加入数,如果 x 可以被前面的数表示出来,那么x就没必要加入,
+如何知道x是否能被前面的数表示出来 ? 
+
+拆位进行考虑,即x的每位1要与奇数个该位为1的数异或,
+奇数很难维护,我们希望每位1的数都只有1个,有因为$a\oplus b,a,b$只要保$a\oplus b,a$即可,所以这是可以做到的
+
+具体而言,第 i 位放一个最高位为 i 的 $d[i]$ ,当插入x时,从高到低试着消去其最高位,直达其有一位消不掉时放入集合
+```cpp
+    fq(i,1,n) {
+        ll x; cin >> x;
+        fr(i,49,0) {
+            if(!((x >> i) & 1)) continue;
+            if(d[i]) x ^= d[i];
+            else {d[i] = x; break;}
+        }
+    }
+```
+
+## 类欧几里得
+### 特例引入
+log(n)求$$f(p,q,r,n) = \sum_{x = 0}^n \lfloor \frac{px + r}{q} \rfloor$$
+取整想到除法分块,但是变得是被除数,且带了个常数,所以每个x的值可能都不一样,直接错了
+
+在坐标轴中画出这条直线, 
+一个显然的想法是:
+每q个方格形成了一个循环,内部东西一模一样,
+所以可以轻易的转换为等差数列求和
+但如果q非常大还是做不了~~~
+
+**所以问题关键是如何把p,q变小 ?**
+类似gcd的做法
+- $$f(p,q,r,n) = f(p\%q,q,r\%q,n) + \lfloor \frac{p}{q} \rfloor \frac{n(n + 1)}{2} + (n + 1)\lfloor \frac{r}{q}\rfloor$$
+- $p < q,r < q$ ,我们需要调换p,q的位置,
+  $$\begin{aligned}
+  f(p,q,r,n) & = \sum_{x = 0}^n \sum_{j = 0}^{\lfloor \frac{px + r}{q} \rfloor - 1} 1\\
+  & = \sum_{j = 0}^{\lfloor \frac{pn + r}{q} \rfloor - 1}\sum_{x = 0}^n [j + 1\le \frac{px + r}{q}]\\
+  & = \sum_{j = 0}^{\lfloor \frac{pn + r}{q} \rfloor - 1} \sum_{x = 0}^{n} [x > \frac{jq + q -r - 1}{p}]\\
+  & = \sum_{j = 0}^{\lfloor \frac{pn + r}{q} \rfloor - 1}n - \lfloor\frac{jq + q - r - 1}{p}\rfloor\\
+  & = \lfloor \frac{pn + r}{q} \rfloor n - f(q,p,q - r - 1,\lfloor \frac{pn + r}{q} \rfloor - 1)
+\end{aligned} $$
+
+为什么r 也要 mod q呢 ? 我也不知道,明天问下lay😒
+
+### 整理思路
+考虑上一个特例我们实际进行了什么
+
+1. 我们发现当p,q很小时答案可以很快求得,因此考虑将p,q减小
+2. p 可以拆位 $\lfloor p / q\rfloor q + p \mod q$,其中前一位可以和下面的q消掉,
+   因此可以变为$p\% q,q $
+3. 类似 gcd 的思路,交换p,q位置,这可以通过把贡献全拆为1后限制转移做到
+   **因为转换为限制后就可以进行移项等操做,所以类似更换函数内位置的操做都通过转限制做到**
+
+**当式子中出现类似$\frac{a}{b}$时就可以考虑类欧算法了,**
+因为$\lfloor \frac{a}{b} \rfloor b$可以被直接消掉,就很递归
