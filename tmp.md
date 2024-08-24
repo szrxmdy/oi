@@ -534,3 +534,17 @@ log(n)求$$f(p,q,r,n) = \sum_{x = 0}^n \lfloor \frac{px + r}{q} \rfloor$$
 
 **当式子中出现类似$\frac{a}{b}$时就可以考虑类欧算法了,**
 因为$\lfloor \frac{a}{b} \rfloor b$可以被直接消掉,就很递归
+
+## 树形背包的复杂度证明
+**一定要写成这样形式**,
+**即复杂度为siz已经加入的 * 新的siz**
+```cpp
+fr(i,siz[u],0) fq(j,1,siz[v]) f[i + j] = f[i] .. f[j]. ..
+```
+进行节点u时复杂度
+$siz_{v_1} + siz_{v_1}siz_{v_2} + (siz_{v_1} + siz_{v_2})siz_{v_3} + \dots $,
+即
+$$\begin{aligned}
+  \sum_i siz_{v_i}\sum_{j > i}siz_{v_j} & \le (\sum siz_{v_i})^2 - \sum siz_{v_i}^2
+\end{aligned}$$
+其加上子节点$siz_v^2$的复杂度,复杂度恰为$siz_u^2$
