@@ -548,3 +548,35 @@ $$\begin{aligned}
   \sum_i siz_{v_i}\sum_{j > i}siz_{v_j} & \le (\sum siz_{v_i})^2 - \sum siz_{v_i}^2
 \end{aligned}$$
 其加上子节点$siz_v^2$的复杂度,复杂度恰为$siz_u^2$
+
+## ac自动机
+ac自动机的重要思想是通过修改 ch 来达到快速跳fail,
+具体而言,正常时,为了获得一个fail,我们需要一直跳fail直到节点1或遇到fail + c,
+但如果一个点没有儿子 c ,我们将儿子 c 直接修改为 fail + c即可,
+这样只要跳一次 fail 即可,因为该 fail 中已经包含了所有往前跳 fail 的信息
+```cpp
+void build() {
+    tr[0][0] = tr[0][1] = 1;
+    queue<int> q; q.push(1);
+    while(q.size()) {
+        int u(q.front()); q.pop();
+        for(int c : {0,1}) {
+            int v(tr[u][c]);
+            if(v) {q.push(v); fail[v] = tr[fail[u]][c]; ed[v] |= ed[fail[v]];}
+            else {tr[u][c] = tr[fail[u]][c];}
+        }
+    }
+}
+```
+
+
+## ac自动机上dp
+**有一类问题,要求统计字串中(不)出现一些串的字符串个数**
+
+考虑简单情况,如果不能出现的字符串 t 只有一个怎么办,
+$f[i][j]$ 表示长度为i,构造出的字符串后缀和 t 前 j 个字符相同的情况,
+每次加入字符 c ,就是在匹配t[1 - j] 的后缀 + c 与 t 的匹配,这时kmp模板
+
+如果不能出现的有多个,放到ac自动机上就可以啦
+用$f[i][j] $ 表示长度为 i ,后缀在字典树上所在节点为 j 即可
+eg : [[JSOI2007] 文本生成器](https://www.luogu.com.cn/problem/P4052)
