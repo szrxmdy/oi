@@ -720,3 +720,75 @@ $\forall a \le b \le c \le d,\\w(a,c) + w(b,d) \le w(a,d) + w(b,c) \\\Leftrighta
 且 w(i,j) 满足四边形不等式,
 且 $\forall a \le b \le c\le d,w(b,c) \le w(a,d)$,
 则f[i][j]决策单调
+
+## FWT
+规定$\sum_i$ 表示 $\sum_{i = 0} ^ {n - 1}$
+FWT 指使用类似 fft 的方法来实现位运算卷积,
+要求$C_n = \sum_{n = i \bigodot j} A_i * B_j $
+我们需要构造一种方式 F ,使 $FC_i = FA_i * FB_i$ , 然后再$F^{-1}$ 回去
+$$\begin{aligned}
+    &FA_i = \sum_j w(i,j) A_j &\\
+    &FC_i = \sum_j w(i,j) C_j &\\
+    & = \sum_j\sum_{j = u \bigodot v} w(i,j) A_uB_v\\
+    & = \sum_{u\bigodot v}w(i,u\bigodot v) A_uB_v \\
+    & = \sum_u\sum_vw(i,u)w(i,v)A_uB_v
+\end{aligned} $$
+即构造一个 w ,满足$w(i,u)w(i,v) = w(i,u \bigodot v) $ 即可
+$\bigodot$ 是某种位运算
+因为位运算各位数之间互不影响,
+要让$w(i,\overline{nu})w(i,\overline{mv}) = w(i,\overline{nu} \bigodot \overline{mv}) $,
+只需定义$w(i,\overline{uv}) = w(i,u)w(i,v) $即可,
+对于 i 要增加位数,也可以如此定义
+### 正变换
+$$\begin{aligned}
+    FA_i & = \sum_j w(i,j)A_j \\
+     & = \sum_{u = 0}^{n / 2 - 1} w(i,u)A_j + \sum_{v = n / 2}^{n - 1}w(i,v)A_j
+\end{aligned}$$
+发现 u,v 只有最高位不同,假设 i 最高位为 i0,i,u,v去除最高位后为 i',u',v'
+$FA_i = w(i0,0) \sum_{u = 0}^{n / 2 - 1}w(i',u')A_{u'} + w(i0,1)\sum_{v = n / 2}^{n - 1}w(i',v')A_{v'} $
+$FA_i = w(i0,0)FA_{0i'} + w(i0,1)FA_{1i'} $
+我们直接提取最高位出来,源于上述对 w 拓展位数时的定义,因此可直接分配律提取
+
+### 逆变换
+类似 fft,在分析逆变换时,使用矩阵工具,要求
+$$\begin{bmatrix}
+    w_{00} & w_{01} & w_{02}  & \dots \\
+    w_{10} & w_{11} & w_{12} & \dots \\
+    w_{20} & w_{21} & w_{22} & \dots\\ \dots
+\end{bmatrix}^{-1}$$
+注意到该矩阵的其他值都是由左上4个值相乘得到,
+如果我们求出左上4个值得逆矩阵,
+手模发现其得到拓展矩阵和该矩阵相乘也应该是单位矩阵
+所以我们只要构造出 2 * 2 得矩阵即可
+注意不能构造一个全1矩阵或一列一行全为0,没有逆元
+比赛时忘记了某种构造把 1,-1,0 都带一下即可
+### 异或
+正变换矩阵
+$$\begin{bmatrix}
+    1 & 1\\1 & -1
+\end{bmatrix}$$
+逆变换矩阵
+$$\begin{bmatrix}
+    0.5 & 0.5\\0.5 & -0.5
+\end{bmatrix}$$
+```cpp
+void FWT(ll a[],int lim,int fg) {
+    if(lim == 1) return ;
+    ll a0[lim >> 1],a1[lim >> 1];
+    for(int i(0); i < (lim >> 1); ++i) a0[i] = a[i];
+    for(int i(0); i < (lim >> 1); ++i) a1[i] = a[i + (lim >> 1)];
+    FWT(a0,lim >> 1,fg); FWT(a1,lim >> 1,fg);
+    for(int i(0); i < (lim >> 1); ++i) {
+        a[i] = (w[fg][0][0] * a0[i] + w[fg][0][1] * a1[i]) % P;
+        a[i + (lim >> 1)] = (w[fg][1][0] * a0[i] + w[fg][1][1] * a1[i]) % P;
+    }
+}
+```
+
+## 失配树
+字符串上每个点向其最长公共前后缀连边,得到一颗失配树
+性质 : 
+- 从点 i 到根的路径代表了 s[1 : i] 的所有border
+- 点 i 的子树大小为 s[1 : i] 的出现次数
+
+## lct
