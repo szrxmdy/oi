@@ -257,6 +257,9 @@ $$
 eg : [上帝造题的七分钟](https://www.luogu.com.cn/problem/P4514)
 
 ## hash
+### 自然溢出和大质数取模
+当只有 加法 / 异或 等时可以用自然溢出,
+但如果带有乘法,如字符串hash,自然溢出可以被轻松卡掉
 ### 映射函数
 在hash中常将一个小数映射成另一个复杂的数来降低碰撞概率
 此处给出一种方法
@@ -267,17 +270,24 @@ ull g(ull x) {
     x ^= mask; return x;
 }
 ```
-其中mask随便选,要大!!!,加ll
+其中mask随便选,要大!!!,加ull
 通过更改mask合并并不能提供更强的g(),要改移动位数
+
+其本质是 xorshift 取随机数的片段,其有全域形(所有值都可以搞出来),平均性(每个值出现概率相等)的好性质,
+其中 mask 在正确性上并没有什么用处,只是将数映射大一点,在类似集合 hash 中加减时更不容易碰撞
 ### 集合hash
 **hash除了比较单个数是否相同,也可以比较数集是否相同**
 即给数集中每个数分配一个数,求全部数的异或和为整个数集的hash值
+多重集可以考虑相乘 / 加
 ### 树hash
 判断2棵树是否同构
 1.将无根树转换为有根树,以树的重心为根,注意树可能有2个重心!!
 2.每个点$hash(u) = c + \sum {g(hash(v))} $,
 即对每个节点的子树做集合hash
 
+#### 树hash的字符串实现
+将子树按照hash值/长度排序后,拼接字符串为 $dep_u + hash_{v1} + hash_{v2} + \dots $
+ 
 ## 启发式搜索
 估算一下当前情况往后至少要多少代价,如果已经劣于最优解就退出
 因为其依赖于最优解,所以要考虑搜索顺序,或者**迭代加深**
@@ -603,18 +613,55 @@ set 在插入/删除其他迭代器时该迭代器不失效
 ## 容斥反演
 容斥定理过于抽象,因此为了更方便的运用,我们抽象出常用的反演形式来快速证明其正确性
 
+### 核心等式
+$$\begin{aligned}
+\sum_{T\in S} (-1)^{|S| - |T|} & = \sum_{T \in S} [(|S| - |T|) \mod 2 = 0] - \sum_{T\in S} [(|S| - |T|) \mod 2 = 1]\\
+& = \sum_{i = 0}^{|S|} {|S| \choose i}[i \mod 2 = 0] - {|S| \choose i}[i \mod 2 = 1]\\
+& = [|S| = 0] = [S = \emptyset]
+\end{aligned} $$
+推论 :
+固定 H , S $\sum_{H \in T \in S}(-1)^{|S| - |T|} = \sum_{T \in (S \oplus H)} = [H = S] $
+
+### 原始形式
+令全集为 $U$
+- 枚举子集
+$$f_S = \sum_{T \in S} g_T \Leftrightarrow g_S = \sum_{T\in S} (-1)^{|S| - |T|} f_T $$
+证明 : 
+$$\begin{aligned}
+g_S & = \sum_{T\in S} (-1)^{|S| - |T|} \sum_{H\in T} g_H\\
+& = \sum_{H\in S} g_H (\sum_{H\in T\in S} (-1)^{|S| - |T|})\\
+& = \sum_{H\in S} g_H [H = S]
+\end{aligned}$$
+- 枚举超集
+$$f_S = \sum_{S \in T \in U} g_T \Leftrightarrow g_S = \sum_{S \in T \in U} (-1)^{|T| - |S|} f_T $$
+证明同上
+
 ### 二项式反演
-形式一(至多 - 恰好) :
-$$f(n) = \sum_{i = k}^n {n\choose i} g(i)\Leftrightarrow g(n) = \sum_{i = k}^n (-1)^{n - i}{n\choose i}f(i) $$
-形式二(至少 - 恰好) :
-$$f(k) = \sum_{i = k}^n {i\choose k}g(i)\Leftrightarrow g(k) = \sum_{i = k}^n (-1)^{i - k}{i\choose k} f(i) $$
-形式三 : 
-$$f(n) = \sum_{i = 0}^n {n\choose i} (-1)^i g(i) \Leftrightarrow g(n) = \sum_{i = 0}^n {n\choose i} (-1)^i f(i) $$
+**本质是如果集合的每个元素等价,我们可以由枚举子集变为枚举子集大小**
+其常常用于将恰好的限制减少为 至多/少 来简化
 
-
-### 子集反演
+- 枚举子集 :
+$$f_n = \sum_{i = 0}^n {n\choose i} g_i \Leftrightarrow g_n = \sum_{i = 0}^n (-1)^{n - i} {n\choose i} f_i $$
+- 枚举超集 :
+$$f_k = \sum_{i = k}^n {i \choose k} g_i \Leftrightarrow g_k = \sum_{i = k}^n (-1)^{i - k} {i\choose k} f_i$$
 
 ### min - max 反演
+不妨假设集合中每个数都不同(相同可以强制钦定大小),下式中 $kthmax(S)$ 只有 $|S| \ge k$时才有意义,否则自动被排除枚举序列
+我们用一个集合子集的最小值来求出该集合中的第 k 大值,不妨设 $f_T$ 为容斥系数
+$$kthmax (S) = \sum_{T \in S} f_T * min(T) \Leftrightarrow f_S * min(S) = \sum_{T\in S}(-1)^{|S| - |T|} kthmax (T) $$
+如果 $kth_max(T) $ 与 S 中最小值 a 不同时,$kth_max(T)\Delta \{a\} = kth_max(T)$,
+所以所有 $kth_max \neq min(S)$ 的都会被消掉,不会作出贡献,而有 ${|S| - 1 \choose k - 1} $ 个子集最小值为 $min(S)$,
+所以有 $f_S = (-1)^{|S| - k} {|S| - 1 \choose k - 1} $ ,带入$f_S$
+$$kthmax(S) = \sum_{T \in S} (-1)^{|T| - k}{|T| - 1\choose k - 1}min(T) $$
+特别的常用的 ,
+$$max(S) = \sum_{T \in S}(-1)^{|T| - 1}min(T) $$
+
+使用方式 : 
+我们将第 k 大的值用最小值表示出来,普通数集好像没什么用,
+但在类似计算期望时常常使用,
+由于概率不独立,我们无法计算出集合中某个元素的期望,但我们能得到
+
+### 子集反演
 
 ### 斯特林反演
 
@@ -730,7 +777,7 @@ $$\begin{aligned}
     &FA_i = \sum_j w(i,j) A_j &\\
     &FC_i = \sum_j w(i,j) C_j &\\
     & = \sum_j\sum_{j = u \bigodot v} w(i,j) A_uB_v\\
-    & = \sum_{u\bigodot v}w(i,u\bigodot v) A_uB_v \\
+    & = \sum_{u}\sum_{v}w(i,u\bigodot v) A_uB_v \\
     & = \sum_u\sum_vw(i,u)w(i,v)A_uB_v
 \end{aligned} $$
 即构造一个 w ,满足$w(i,u)w(i,v) = w(i,u \bigodot v) $ 即可
@@ -784,6 +831,19 @@ void FWT(ll a[],int lim,int fg) {
     }
 }
 ```
+
+### 对位相加与FWT变换
+**如果将两个数组相同位置相加,其 FWT 数组相同位置也相加**
+证明 : 
+令 $C_i = A_i + B_i$ , $FA$ 表示 $A$ 经过变换后的数组
+$$\begin{aligned} 
+FC_i & = \sum_j w(i,j) C_j \\
+& = \sum_j w(i,j) (A_j + B_j) \\
+& = (\sum_j w(i,j) A_j) + (\sum_j w(i,j) B_j) \\
+& = FA_i + FB_i
+\end{aligned}$$
+
+注意 fft 也满足该性质
 
 ## 失配树
 字符串上每个点向其最长公共前后缀连边,得到一颗失配树
@@ -847,3 +907,97 @@ eg : [[APIO2016] 烟火表演](https://www.luogu.com.cn/problem/P3642)
 必要性 : 对前 k 个点来说,出度最少的情况是无指向为遍历到的点的边,即为 ${k \choose 2} $ 条边贡献了出度
 充分性 : 考虑根据出度构造竞赛图
 ... 不会 不知道 完蛋啦
+
+## 线段树分裂 / 合并
+对于**值域相交的树合并,常常使用线段树分裂/合并**
+```cpp
+void split(int x,int &y,int val,int s = 1,int t = n) { //val on origin
+    if(val == t) {y = 0; return ;} y = ++cnt;
+    if(val <= M) {tr[y].rs = tr[x].rs; tr[x].rs = 0;}
+    if(val < M) split(tr[x].ls,tr[y].ls,val,s,M);
+    if(val > M) split(tr[x].rs,tr[y].rs,val,M + 1,t);
+    up(x); up(y);
+}
+```
+注意需要特判 val = 0 的情况
+
+对于线段树合并而言,其复杂度为重复的节点个数,最多有 n log n 个重复节点,而分裂不会制造重复节点,
+因此线段树分裂 / 合并的均摊复杂度为 n log n 的
+eg : [【模板】线段树分裂](https://www.luogu.com.cn/problem/P5494)
+
+### 值域相交平衡树的合并 / 分裂
+平衡树值域相交合并复杂度为 $n log^2 $
+具体而言,合并时将**不作为根的那棵树按照根的大小分裂再向两个子树递归合并**
+大佬的证明 : [题解 & 平衡树合并](https://www.luogu.com.cn/article/p4ejw9j6)
+
+## dp套dp
+在一些约束条件非常复杂的计数类dp中,
+我们常常设计出判定形dp,然后以该dp的状态和值作为状态跑计数dp
+eg : [小 N 的独立集](https://www.luogu.com.cn/problem/P8352)
+eg : [[TJOI2018] 游园会](https://www.luogu.com.cn/problem/P4590)
+
+## 前缀线性异或基
+该技巧由于快速得到区间 $[l,r]$ 的线性基,其基本思路是贪心的使构成线性基的数尽可能靠后
+具体而言,插入数字时,如果能够当前插入的数坐标比该位置上的数坐标更大,就交换出来,
+
+正确性证明 : 
+考虑新数 x 可以由线性基中 $d_1 \oplus d_2 \oplus d_3 \dots$ 得到,
+那么 x 可以替换 $d_i$ 中的任意一个数,且只能替换一个,
+在做的过程中我们会且只会遍历到每个$d_i$ , 那么我们就将他们中坐标最小的换出来了
+
+处理能异或出 0 的小细节,如何记录最大的能够异或出 0 的坐标呢 ? 
+每次插入新数时如果最后能消完,就用当前换出来的最小的那个坐标和原来能异或出 0 的坐标取大的即可
+这依然从  $x = d_1 \oplus d_2 \oplus d_3 \dots$ 考虑
+```cpp
+void insert(ll val,int pos) {
+    fr(i,62,0) if(val >> i & 1) {
+        if(d[i]) {
+            if(pos > id[i]) swap(id[i],pos),swap(d[i],val);
+            val ^= d[i];
+        } else {d[i] = val; id[i] = pos; return ;}
+    } if(!p_0 || pos > p_0) p_0 = pos;
+}
+```
+
+模板 : [Ivan and Burgers](https://codeforces.com/contest/1100/problem/F)
+
+## 树上 ddp
+树上修改一个节点时只会修改一条链上的 dp 值,所以先树剖一下,
+令 s 表示其重儿子,
+将所有轻儿子对 u 的贡献记为 $g_u$ ,将 $f_u$ 表示为 一个$g_u$ 的矩阵 * $f_s$ 的矩阵得到,
+当我们需要某点 f 值时,只需要求点到链底的矩阵相乘即可,用线段树可维护,
+同时由树剖只换 log 次链,所以我们只会修改 log 个点的 g 值
+写的时候注意 f 和 g 的维护,维护增量时要注意其是否是已被修改,
+注意 : **加法 & min/max 矩阵的矩阵尽量避免涉及到无穷的加减,非常容易爆炸,能不用就不用,线段树只建议小分讨**
+模板 : [【模板】"动态 DP"&动态树分治](https://www.luogu.com.cn/problem/P4719)
+
+## 杜数筛
+杜数筛用于在线性时间一下求解积性函数的前缀和,其用一个便于求前缀和的辅助积性函数 g
+令 $s_n = \sum_{i = 1}^n f_i $
+$$\begin{aligned}
+\sum_{i = 1}^n (f * g)(i) & = \sum_{i = 1}^n \sum_{d | i} g(d)f(\frac{i}{d}) \\
+& = \sum_{d = 1}^n g(d) \sum_{i = 1}^{\lfloor \frac{n}{d} \rfloor} f(i) \\
+& = \sum_{d = 1}^n g(d) s(\lfloor \frac{n}{d} \rfloor)
+\end{aligned} $$
+要求 $s(n)$ 有 $g(1)s(n) = \sum_{i = 1}^n (f * g)(i) - \sum_{d = 2}^n g(d)s(\lfloor \frac{n}{d} \rfloor)$
+用除法分块枚举 d ,提前处理 $\le 10^6$ 的前缀和并记忆化搜索
+
+- 求 $\mu$ 前缀和
+$\mu * \Iota = \epsilon \Rightarrow s(n) = 1 - \sum_{d = 2}^n s(\lfloor \frac{n}{d} \rfloor) $
+其中$Iota(n) = 1$ , $\epsilon(n) = [n = 1] $
+- 求$\phi$前缀和
+$\phi * \Iota = id \Rightarrow s(n) = \frac{n(n + 1)}{2} - \sum_{d = 2}^n s(\lfloor \frac{n}{d} \rfloor)$
+其中$id(n) = n$
+
+## 全局平衡二叉树
+其本质是一个静态的 lct , 比lct好写 , 并且比树剖少一个 log
+先将树进行重链剖分,然后将每条重链建成一颗平衡树,像 lct 一样轻边认父不认子
+
+但直接建成平衡树时间还是 2 个log,
+朴素的想法是一个重链上某个点如果练了更多的轻点,要将他向上提一点位置,
+所以每次取轻点 siz 和 + 1 的带权中点,
+此时每向上一个重边,轻点 + 链上点(即整棵树) 的 siz 和翻倍,所以最多走 log 个条重链,
+因此总时间复杂度是 log 的
+
+树上修改记录一下每棵树的根节点,然后从根节点开始类似 fhq 那样修改,但不用分裂
+eg : [[LNOI2014] LCA](https://www.luogu.com.cn/problem/P4211)
