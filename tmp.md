@@ -879,6 +879,11 @@ f_{j + 2w_i} &= max(g_{j + 2w_i},g_{j + w_i} + v_i,g_{j} + 2v_i)\\
 
 eg : [【模板】点分治 1](https://www.luogu.com.cn/problem/P3806)
 
+## 边分治
+每次选边将树分成尽量平均的两部分,
+但遇到菊花图就直接爆炸了,所以需要优化建图.
+常用的方法是对于度数超标的点用类似线段树的方法重建图,把其儿子作为线段树的叶子,线段树间建 0 边
+
 ## Slope trick
 该 trick 常常用于维护斜率为 O(n) 级别的凸包进行各种操作
 **其常常与有绝对值的式子一起出现**
@@ -1034,28 +1039,39 @@ $$L_{i,j} = \begin{cases} i 的度数 & i = j \\ - (i 连向 j 的边数) & i \n
 因此就是将 $M[S]$ 随便扔掉一行,然后其 $\det M[S] \neq 0$ 即可 
 
 同时 $\det M[S] = 1 或 -1$ , 
-这个可以直接用 $\det$ 的意义为高维空间的平行高维体积来理解,每个边为 1 / -1,最终体积也为 1/-1,
+
 所以我们就是要求出所有 $|S| = n - 1$ 的 $\sum (\det M[S])^2$ 即可
 
 ### Cauchy-Binet 定理
-A 为 $n * m $ 的矩阵 , B 为 $m * n$ 的矩阵 , 则 AB 为 $n * n$ 的矩阵
+A 为 $n * m $ 的矩阵 , B 为 $m * n$ 的矩阵
 $\det(AB) = \sum_{|S| = n} (\det A[S])(\det B[S]) = \sum_{|S| = n} \det (A[S]B[S]) $
-证明 : 
-考虑矩阵 $C = AB$ , 我们将 C 的每个向量拆成多个向量相加,
-我们发现 $C_{i,j} = \sum_{k} A_{i,k}B_{k,j} $ 显然就可以拆成向量相加的形式,
-即将$C$ 的每个向量 $\vec{u}$ 拆为 $\vec{u_1} + \vec{u_2} + \vec{u_3} + \dots $ ,
-其中 $\vec{u_i} $ 代表 $k = i$ 时得到的向量值,
-则 $C = (\vec{u_1} + \vec{u_2} + \dots , \vec{v_1} + \vec{v_2} + \dots , \dots ) $
-那么 C 最终就是 $\sum_{每个向量选一个 加的项\vec{u_i} 构成矩阵 D } \det D $,
-
-
-$$\begin{aligned}
-原式 & = \sum_{|S| = n} \det(A[S]B[S]) \\
-& = 
-\end{aligned} $$
 
 ### 矩阵 - 树定理本体 !!!
 令 $L_0$ 为 L 将 $L_{i,i}$ 全部置为 0 的矩阵,
 $$\begin{aligned} \det L_0 & = \det (M * M^T) \\
 & = 
 \end{aligned}$$
+
+## 可撤销结构的指针写法
+对于可撤销结构如 并查集 , 线段树分治 等,
+记录具体的操作在逆过来是一种方式,但非常麻烦,
+**我们可以直接记录所有数的改变情况,这样就比较好写且不容易出错**
+```cpp
+stack<pair<int*,int>> stk;
+void upd(int &x,int y) { stk.emplace(&x,x); x = y; }
+void reset(int n) { while(stk.size() ^ n) {*stk.top().first = stk.top().second; stk.pop();} }
+```
+然后直接再改变数时用 upd 就可以做到可撤销
+```cpp
+void merge(int u,int v) {
+    u = find(u) , v = find(v);
+    if(u == v) return ;
+    if(siz[u] < siz[v]) swap(u,v);
+    upd(siz[u],siz[u] + siz[v]); upd(fa[v],u);
+}
+```
+其他类型数据结构的也可以用相同方式做到
+
+## 常见分块技巧
+- 一个块中最多只有块长个不同的值
+如我们求解区间增减颜色,查询区间内每个颜色有多少个时可以使用

@@ -39,6 +39,22 @@ eg : $998244353 = 2^{23} \times 7 \times 17 + 1 $
 原根求解 : 
 
 **注意 : fft做做乘法是如果要保留前 n 位,不能只对前 n 位做乘法,要先求出所有位的答案,然后再舍去后几位**
+
+code : 
+```
+void ntt(int lim,int a[],bool fg) {
+    if(lim == 1) return ;
+    int a0[lim >> 1],a1[lim >> 1];
+    for(int i(0); i < lim; ++i) if(i & 1) a1[i >> 1] = a[i]; else a0[i >> 1] = a[i];
+    ntt(lim >> 1,a0,fg); ntt(lim >> 1,a1,fg);
+
+    ll w(1),w1 = qpow(3,(P - 1) / lim); if(fg) w1 = qpow(w1,lim - 1);
+    for(int i(0); i < (lim >> 1); ++i,w = w * w1 % P) {
+        a[i] = (a0[i] + 1ll * w * a1[i]) % P;
+        a[i + (lim >> 1)] = (a0[i] - 1ll * w * a1[i]) % P;
+    }
+}
+```
 ## 多项式求逆
 已知 f , 求解 $f * g = 1 (\mod x^n)$
 显然多项式存在逆的前提是常数项不为0,
