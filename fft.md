@@ -22,6 +22,8 @@ $$
 这样可以把$T(n) = 4T(n/2) + n \rightarrow 2T(n/2) + n$
 #### 从点值转换为系数
 写成矩阵显然可以做到
+若 $b_k = \sum_{i = 0}^{n - 1} a_iw_n^{ki} $ , 则
+$a_k = \frac{1}{n} \sum_{i = 0}^{n - 1} a_iw_n^{-ki}$
 
 ## ntt
 注意到 fft 关键是构造出一些 $w_n^k$ 满足性质 :
@@ -55,6 +57,29 @@ void ntt(int lim,int a[],bool fg) {
     }
 }
 ```
+
+### 迭代写法
+考虑最底层位置 i 的编号,由于每次递归把当前最低位为 0 的放左边(最高位置为0),为 1 的放右边(最高位置为 1),
+因此在 i 位置上的即为 i 的二进制位反过来的数,最底层放好后一层层递归上去是简单的
+```cpp
+    static int r[S]; r[0] = 0; 
+    for(int i(1); i < lim; ++i) r[i] = r[i >> 1] >> 1 | (i & 1) << (lg - 1);
+    
+    void ntt(int lim,int *a,bool mode,int *r) { //mode == 1 ? intt else ntt
+        for(int i(0); i < lim; ++i) if(i < r[i]) std::swap(a[i],a[r[i]]);
+        for(int len(2); len <= lim; len <<= 1) {
+            int w1 = (mode ? qpow(g,P - 1 - (P - 1) / len) : qpow(g,(P - 1) / len));
+            for(int i(0),w(1); i < (len >> 1); ++i , w = 1ll * w * w1 % P) 
+                for(int bg(0); bg < lim; bg += len) {
+                    const int x = a[i | bg] , y = a[bg | i | (len >> 1)];
+                    const int z = 1ll * y * w % P;
+                    a[i | bg] = add(x,z);
+                    a[bg | i | (len >> 1)] = add(x,P - z);
+                }
+        }
+    }
+```
+
 ## 多项式求逆
 已知 f , 求解 $f * g = 1 (\mod x^n)$
 显然多项式存在逆的前提是常数项不为0,
@@ -80,3 +105,25 @@ g_{i + 1} & = g_i - \frac{f - g_i^{-1}}{g^{-2}} \\
 求解 ln f 显然不能直接将 f 带入 ln ,
 考虑到多项式求导和积分是非常容易的,而 $\frac{dy}{dx} ln = \frac{1}{x}$,
 所以我们可以先对 ln 求导,带入 f 是好做的,然后再将 ln f 积分回去
+
+## 多项式求 exp
+同理进行牛顿迭代
+
+## 多项式中牛顿迭代的正确性
+
+## 多项式整除和取余
+对于多项式 f , g , 存在唯一的 Q 和 R 满足 $f = g * Q + R$ , 其中 $deg R < deg G$ , deg 为次数
+如果我们写成长除法的形式,不难发现 Q 和 R 的分解是唯一的
+
+> 值得一提,多项式的最大公因式可以用欧几里得来求,即 $gcd (f,g) = gcd(g,f \mod g)$
+
+应用长除法的方法,我们可以推广很多初等数论的结论
+- $(f\mod p) * (g\mod p) = (f * g) \mod p $
+- $(f + g) \mod p = (f \mod p) + (g \mod p) $
+
+### 循环卷积
+对于多项式 f , 如果要将指数为 km + i 的项数贡献到 i 上,直接 $f \mod x^m - 1 \rightarrow f $ ,
+证明可以考虑模拟长除法的过程,在满足 km + i 项的值时,会通过 -1 贡献到 (k - 1)m + i 项,对于负指数是类似的.
+由于取模对乘法的分配律,因此常用于对环上问题转化为类似序列的多项式变形
+
+### 求解方法
