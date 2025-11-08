@@ -1205,3 +1205,33 @@ $\det M = \sum_{p} (-1)^{\sigema (p)} \prod M_{i,p_i} $
 则最终统计时 $(A_1B_1)(A_2B_2) - (A_1B_2)(A_2B_1)$ 刚好抵消,贡献为 0
 
 若在一个方案中有交点,我们交换这个交点的两条路径对应关系其贡献值不变,因此会在 $(-1)^{\sigema (p)}$ 中使贡献为 0
+
+## 高中信息二分总结
+### L > R 为结束
+```py
+n = R - L + 1
+while L <= R :
+    m = (L + R) // 2
+    if a[m] > key :
+        R = m - 1
+    else :
+        L = m + 1
+```
+- 次数 : $\lfloor \log_2 (n + 1) \rfloor$
+
+    $n = 1$ 时显然成立
+
+    $f(n) = f(\lfloor \frac{n}{2} \rfloor - 1) 或 f(\lfloor \frac{n}{2} \rfloor) $
+
+    $$\begin{aligned}
+    f(n) & = f(\lfloor \frac{n}{2} \rfloor - 1) & 或 & f(\lfloor \frac{n}{2} \rfloor) & + 1\\
+    & = \lfloor\log_2 \lfloor \frac{n}{2} \rfloor \rfloor & 或 & \lfloor \log_2 (\lfloor \frac{n}{2} \rfloor + 1) \rfloor & + 1
+    \end{aligned}
+    $$
+
+- $a[R] \le key , a[L] > key , L = R + 1$ 
+
+    先确定有条件的那一边，另一边直接取反即可
+
+### L == R 结束
+- 次数 : 答案与位置有关
