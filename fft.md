@@ -25,6 +25,17 @@ $$
 若 $b_k = \sum_{i = 0}^{n - 1} a_iw_n^{ki} $ , 则
 $a_k = \frac{1}{n} \sum_{i = 0}^{n - 1} a_iw_n^{-ki}$
 
+#### 两次 fft 实现乘法小技巧
+把多项式 B 的系数放到 A 的虚部上，然后让 A 自己平方，这样只要做一次 FFT 和 IFFT 即可。
+证明
+$$\begin{aligned}
+a_0 + b_0i + (a_1 + b_1i)x + \dots & = (a_0 + a_1x + a_2x^2 + \dots) &+& (b_0 + b_1x + b_2x^2 + \dots)i\\ & = A & + & Bi
+\end{aligned} $$
+然后平方则取出虚部除以 $2$ 就是答案
+$$\begin{aligned}
+    (A + Bi)^2 = A^2 - B^2 + 2ABi
+\end{aligned} $$
+
 ## ntt
 注意到 fft 关键是构造出一些 $w_n^k$ 满足性质 :
 - $(w_n^k)^i = w_n^{ki}$
