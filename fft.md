@@ -26,6 +26,7 @@ $$
 $a_k = \frac{1}{n} \sum_{i = 0}^{n - 1} a_iw_n^{-ki}$
 
 #### 两次 fft 实现乘法小技巧
+##### 法一
 把多项式 B 的系数放到 A 的虚部上，然后让 A 自己平方，这样只要做一次 FFT 和 IFFT 即可。
 证明
 $$\begin{aligned}
@@ -35,6 +36,20 @@ a_0 + b_0i + (a_1 + b_1i)x + \dots & = (a_0 + a_1x + a_2x^2 + \dots) &+& (b_0 + 
 $$\begin{aligned}
     (A + Bi)^2 = A^2 - B^2 + 2ABi
 \end{aligned} $$
+##### 法二
+构造多项式
+$$\begin{aligned}
+    P(x) & = A(x) + B(x)i\\ Q(x) & = A(x) - B(x)i
+\end{aligned} $$
+由于 A 的系数均为实数，有
+$$\begin{aligned}
+A(\omega^i) &= \sum_k a_i\omega^{ik}\\&=\sum_k a_i \overline{\omega^{-ik}}\\&=\sum_k\overline{a_i\omega^{-ik}}\\&= \overline{A(\omega^{-i})}
+\end{aligned}$$
+对 B 也同理，因而
+$$\begin{aligned}
+\overline{P(\omega^i)} & = \overline{A(\omega^i) + B(\omega^i)i} \\ &= \overline{A(\omega^i)} + \overline{B(\omega^i)} \times \overline{i}\\& = A(\omega^{-i}) - B(\omega^{-i})i\\& = Q(\omega^{-i})
+\end{aligned}$$
+因而用 FFT 求出 $P$ 的点值后可以求出 $Q$ 的点值，从而解出 $A$ 和 $B$ 的点值。
 
 ## ntt
 注意到 fft 关键是构造出一些 $w_n^k$ 满足性质 :
